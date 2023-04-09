@@ -39,8 +39,9 @@ app.get('/', (req, res) => {
 app.get('/description/:desc', async (req, res) => {
   const description = req.params.desc;
 
-  console.log(getGeneratedMei(description));
-
+  //console.log(getGeneratedMei(description));
+  const mei = await getGeneratedMei(description);
+  console.log(mei);
   fs.readFile(path.join(__dirname, 'MIDIPlayer.html'), 'utf-8', (err, data) => {
     if (err) {
       console.error(err);
@@ -59,7 +60,9 @@ app.get('/description/:desc', async (req, res) => {
 
 async function getGeneratedMei(description) {
     
-    const prompt = `Could you generate sheet music using the XML MEI format, and it's just a D major chord? 
+  // example of sending variable in `` string: `hello ${name}`
+  // encoding spaces in a url is %20
+    const prompt = `Could you generate sheet music using the XML MEI format, and it's just ${description}? 
     here's an example of the format I'd like (this is a C major chord example):
     <?xml version="1.0" encoding="UTF-8"?>
 <mei xmlns="http://www.music-encoding.org/ns/mei">
@@ -103,10 +106,17 @@ async function getGeneratedMei(description) {
       //prompt: prompt,
       //max_tokens: 10,
     });
-    console.log(response.data.choices[0].message.content);
+    const the_response = response.data.choices[0].message.content;
+    //console.log(the_response);//response.data.choices[0].message.content);
     //console.log(response.data.choices[0].text);
     
-    return "actually just hardcoded for now";
+    // parse the response to only include the text between the ``` and ```
+    const start = the_response.indexOf("```")+6;
+    const end = the_response.lastIndexOf("```");
+    const clean_response = the_response.substring(start, end);
+    //console.log(clean_response);
+
+    return clean_response;//"actually just hardcoded for now";
 }
 
 app.listen(PORT, () => {
